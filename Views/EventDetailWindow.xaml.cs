@@ -1,4 +1,5 @@
 using System.Windows;
+using WinCal.Core.Helpers;
 using WinCal.Core.Models;
 using WinCal.ViewModels;
 
@@ -16,14 +17,14 @@ public partial class EventDetailWindow : Window
     /// </summary>
     public void ShowEvent(CalendarEvent evt, Window mainPanel)
     {
-        DetailTitle.Text = evt.Title;
+        FlagEmojiTextRenderer.SetText(DetailTitle, evt.Title);
         DetailTime.Text = EventListViewModel.FormatEventTime(evt);
 
         // 地点
         if (!string.IsNullOrEmpty(evt.Location))
         {
             LocationPanel.Visibility = Visibility.Visible;
-            DetailLocation.Text = evt.Location;
+            FlagEmojiTextRenderer.SetText(DetailLocation, evt.Location);
         }
         else
         {
@@ -34,7 +35,7 @@ public partial class EventDetailWindow : Window
         if (!string.IsNullOrEmpty(evt.CalendarName))
         {
             CalendarPanel.Visibility = Visibility.Visible;
-            DetailCalendar.Text = evt.CalendarName;
+            FlagEmojiTextRenderer.SetText(DetailCalendar, evt.CalendarName);
         }
         else
         {
@@ -46,7 +47,7 @@ public partial class EventDetailWindow : Window
         {
             DescSeparator.Visibility = Visibility.Visible;
             DetailDescription.Visibility = Visibility.Visible;
-            DetailDescription.Text = evt.Description;
+            FlagEmojiTextRenderer.SetText(DetailDescription, evt.Description);
         }
         else
         {

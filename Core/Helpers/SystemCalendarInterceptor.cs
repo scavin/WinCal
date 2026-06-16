@@ -18,6 +18,7 @@ public class SystemCalendarInterceptor : IDisposable
     private Action? _showPopupCallback;
     private bool _disposed;
     private DateTime _lastInterceptTime;
+    private DateTime _allowSystemCalendarUntil;
     private static readonly TimeSpan InterceptCooldown = TimeSpan.FromMilliseconds(500);
     private readonly HashSet<IntPtr> _hiddenWindows = new();
 
@@ -34,6 +35,7 @@ public class SystemCalendarInterceptor : IDisposable
     private const int WINEVENT_OUTOFCONTEXT = 0;
     private const int SW_HIDE = 0;
     private const int SW_SHOW = 5;
+    private const int VK_SHIFT = 0x10;
 
     // Win32 API
     [DllImport("user32.dll")]
@@ -61,6 +63,9 @@ public class SystemCalendarInterceptor : IDisposable
 
     [DllImport("user32.dll")]
     private static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern short GetAsyncKeyState(int vKey);
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder lpString, int nMaxCount);
@@ -128,6 +133,14 @@ public class SystemCalendarInterceptor : IDisposable
     }
 
     /// <summary>
+    /// 临时放行系统日历，不把下一次任务栏时间弹窗替换成 WinCal。
+    /// </summary>
+    public void AllowSystemCalendarTemporarily(TimeSpan duration)
+    {
+        _allowSystemCalendarUntil = DateTime.UtcNow.Add(duration);
+    }
+
+    /// <summary>
     /// WinEvent 回调 —— 在调用者的线程上下文中执行（WINEVENT_OUTOFCONTEXT）
     /// </summary>
     private static readonly Dictionary<uint, string> EventTypeNames = new()
@@ -178,6 +191,12 @@ public class SystemCalendarInterceptor : IDisposable
             if (!IsSystemCalendarWindow(hwnd))
                 return;
 
+            if (ShouldAllowSystemCalendar())
+            {
+                Log($"Allowing system calendar window: {hwnd}");
+                return;
+            }
+
             // 防抖：500ms 内只处理第一次拦截
             var now = DateTime.UtcNow;
             if (now - _lastInterceptTime < InterceptCooldown)
@@ -209,6 +228,15 @@ public class SystemCalendarInterceptor : IDisposable
         {
             Debug.WriteLine($"WinCal: WinEventProc error: {ex.Message}");
         }
+    }
+
+    private bool ShouldAllowSystemCalendar()
+    {
+        if (DateTime.UtcNow <= _allowSystemCalendarUntil)
+            return true;
+
+        // 按住 Shift 点击任务栏时间时，显示 Windows 原生日历。
+        return (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
     }
 
     /// <summary>

@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using WinCal.Core.Helpers;
 using WinCal.Core.Models;
 using WinCal.ViewModels;
 
@@ -56,7 +57,7 @@ public partial class EventItem : UserControl
         {
             datePart = $"{startDate.Month}月{startDate.Day}日";
         }
-        item.TitleText.Text = $"{evt.Title}({datePart})";
+        FlagEmojiTextRenderer.SetText(item.TitleText, $"{evt.Title}({datePart})");
 
         // 设置时间文本
         item.TimeText.Text = EventListViewModel.FormatEventSummary(evt);

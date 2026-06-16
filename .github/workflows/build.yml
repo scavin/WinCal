@@ -1,0 +1,67 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    name: Build Windows app
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore WinCal.csproj
+
+      - name: Build
+        run: dotnet build WinCal.csproj --configuration Release --no-restore
+
+      - name: Publish framework-dependent app
+        run: >
+          dotnet publish WinCal.csproj
+          --configuration Release
+          --runtime win-x64
+          --self-contained false
+          --no-restore
+          -p:PublishSingleFile=true
+          -p:PublishReadyToRun=false
+          -p:DebugType=None
+          -p:DebugSymbols=false
+          --output dist/framework-dependent
+
+      - name: Publish self-contained app
+        run: >
+          dotnet publish WinCal.csproj
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          --no-restore
+          -p:PublishSingleFile=true
+          -p:EnableCompressionInSingleFile=true
+          -p:PublishReadyToRun=false
+          -p:DebugType=None
+          -p:DebugSymbols=false
+          --output dist/self-contained
+
+      - name: Upload framework-dependent artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WinCal-win-x64-small-requires-dotnet-runtime
+          path: dist/framework-dependent/**
+          if-no-files-found: error
+
+      - name: Upload self-contained artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WinCal-win-x64-standalone
+          path: dist/self-contained/**
+          if-no-files-found: error

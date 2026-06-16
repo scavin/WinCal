@@ -16,6 +16,9 @@
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,6 +27,11 @@
     <PackageReference Include="Ical.Net" Version="4.3.1" />
     <!-- 需要安装 Windows 10 SDK 后取消注释以下行 -->
     <!-- <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.1.1" /> -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\twemoji-flags.zip" />
+    <Resource Include="Assets\twemoji-flags.zip" />
   </ItemGroup>
 
   <!-- 暂时排除需要 Windows SDK (WinRT) 的文件 -->
