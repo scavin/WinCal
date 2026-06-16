@@ -4,8 +4,15 @@
 
 ## 截图
 
-![miniCal](https://github.com/ha0719/WinCal/blob/main/screenshot.jpeg "软件预览")
+<img width="1408" height="1482" alt="Screenshot-2026-06-16-07 08 33@2x" src="https://github.com/user-attachments/assets/7b6349e2-a639-44b1-88e9-d4a0ed3bd003" />
 
+截图中的日历：https://k.appinn.com/fifa2026
+
+## Emoji 国旗
+
+Windows 中不支持显示 Emoji 国旗，所以使用了图片的方式，将国旗图片写入程序本身，200多个国家新增了来自 twemoji 的国旗图片，近 167KB。
+
+---
 
 ## 功能特性
 
