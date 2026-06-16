@@ -25,6 +25,7 @@ dotnet publish WinCal.csproj ^
   -r win-x64 ^
   --self-contained false ^
   -p:PublishSingleFile=true ^
+  -p:EnableCompressionInSingleFile=false ^
   -p:PublishReadyToRun=false ^
   -p:DebugType=None ^
   -p:DebugSymbols=false ^

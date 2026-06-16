@@ -33,6 +33,7 @@ jobs:
           --self-contained false
           --no-restore
           -p:PublishSingleFile=true
+          -p:EnableCompressionInSingleFile=false
           -p:PublishReadyToRun=false
           -p:DebugType=None
           -p:DebugSymbols=false
