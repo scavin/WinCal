@@ -54,10 +54,10 @@ public static class FlagEmojiTextRenderer
                 continue;
             }
 
-            if (TryGetTagFlag(runes, i, out var imageKey, out var fallbackText, out var consumedRunes))
+            if (TryGetTagFlag(runes, i, out var tagFlagImageKey, out var fallbackText, out var consumedRunes))
             {
                 AppendRun(textBlock, buffer);
-                textBlock.Inlines.Add(CreateFlagInline(imageKey, fallbackText, textBlock.FontSize));
+                textBlock.Inlines.Add(CreateFlagInline(tagFlagImageKey, fallbackText, textBlock.FontSize));
                 i += consumedRunes - 1;
                 continue;
             }
