@@ -24,7 +24,19 @@ public static class FlagEmojiTextRenderer
     private const int TagStart = 0xE0020;
     private const int TagEnd = 0xE007E;
     private const int CancelTag = 0xE007F;
+    private const string EnglandFlagKey = "1f3f4-e0067-e0062-e0065-e006e-e0067-e007f";
+    private const string ScotlandFlagKey = "1f3f4-e0067-e0062-e0073-e0063-e0074-e007f";
+    private const string WalesFlagKey = "1f3f4-e0067-e0062-e0077-e006c-e0073-e007f";
     private static readonly Dictionary<string, ImageSource?> FlagSourceCache = new();
+    private static readonly Dictionary<string, (string ImageKey, string FallbackText)> PlainBlackFlagTeamMap = new()
+    {
+        ["英格兰"] = (EnglandFlagKey, "GBENG"),
+        ["England"] = (EnglandFlagKey, "GBENG"),
+        ["苏格兰"] = (ScotlandFlagKey, "GBSCT"),
+        ["Scotland"] = (ScotlandFlagKey, "GBSCT"),
+        ["威尔士"] = (WalesFlagKey, "GBWLS"),
+        ["Wales"] = (WalesFlagKey, "GBWLS")
+    };
 
     public static void SetText(TextBlock textBlock, string? text)
     {
@@ -124,6 +136,12 @@ public static class FlagEmojiTextRenderer
         if (tagStartIndex < runes.Length && runes[tagStartIndex].Value == VariationSelector16)
             tagStartIndex++;
 
+        if (TryGetPlainBlackFlagTeam(runes, tagStartIndex, out imageKey, out fallbackText))
+        {
+            consumedRunes = tagStartIndex - startIndex;
+            return true;
+        }
+
         for (var i = tagStartIndex; i < runes.Length; i++)
         {
             var value = runes[i].Value;
@@ -147,6 +165,43 @@ public static class FlagEmojiTextRenderer
         }
 
         return false;
+    }
+
+    private static bool TryGetPlainBlackFlagTeam(
+        Rune[] runes,
+        int teamNameStartIndex,
+        out string imageKey,
+        out string fallbackText)
+    {
+        imageKey = string.Empty;
+        fallbackText = string.Empty;
+
+        foreach (var (teamName, flag) in PlainBlackFlagTeamMap)
+        {
+            if (!StartsWithText(runes, teamNameStartIndex, teamName))
+                continue;
+
+            imageKey = flag.ImageKey;
+            fallbackText = flag.FallbackText;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool StartsWithText(Rune[] runes, int startIndex, string text)
+    {
+        var textRunes = text.EnumerateRunes().ToArray();
+        if (startIndex + textRunes.Length > runes.Length)
+            return false;
+
+        for (var i = 0; i < textRunes.Length; i++)
+        {
+            if (runes[startIndex + i] != textRunes[i])
+                return false;
+        }
+
+        return true;
     }
 
     private static void AppendRun(TextBlock textBlock, StringBuilder buffer)
