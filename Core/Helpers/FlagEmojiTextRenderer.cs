@@ -16,8 +16,13 @@ namespace WinCal.Core.Helpers;
 public static class FlagEmojiTextRenderer
 {
     private const string FlagArchiveResource = "pack://application:,,,/Assets/twemoji-flags.zip";
+    private const int BlackFlag = 0x1F3F4;
     private const int RegionalIndicatorA = 0x1F1E6;
     private const int RegionalIndicatorZ = 0x1F1FF;
+    private const int TagBase = 0xE0000;
+    private const int TagStart = 0xE0020;
+    private const int TagEnd = 0xE007E;
+    private const int CancelTag = 0xE007F;
     private static readonly Dictionary<string, ImageSource?> FlagSourceCache = new();
 
     public static void SetText(TextBlock textBlock, string? text)
@@ -49,6 +54,14 @@ public static class FlagEmojiTextRenderer
                 continue;
             }
 
+            if (TryGetTagFlag(runes, i, out var imageKey, out var fallbackText, out var consumedRunes))
+            {
+                AppendRun(textBlock, buffer);
+                textBlock.Inlines.Add(CreateFlagInline(imageKey, fallbackText, textBlock.FontSize));
+                i += consumedRunes - 1;
+                continue;
+            }
+
             buffer.Append(runes[i].ToString());
         }
 
@@ -58,11 +71,16 @@ public static class FlagEmojiTextRenderer
     private static bool ContainsCountryFlagEmoji(string text)
     {
         var previousWasRegionalIndicator = false;
+        var runes = text.EnumerateRunes().ToArray();
 
-        foreach (var rune in text.EnumerateRunes())
+        for (var i = 0; i < runes.Length; i++)
         {
+            var rune = runes[i];
             var isRegionalIndicator = TryGetRegionalIndicatorLetter(rune, out _);
             if (previousWasRegionalIndicator && isRegionalIndicator)
+                return true;
+
+            if (TryGetTagFlag(runes, i, out _, out _, out _))
                 return true;
 
             previousWasRegionalIndicator = isRegionalIndicator;
@@ -82,6 +100,48 @@ public static class FlagEmojiTextRenderer
 
         letter = (char)('A' + value - RegionalIndicatorA);
         return true;
+    }
+
+    private static bool TryGetTagFlag(
+        Rune[] runes,
+        int startIndex,
+        out string imageKey,
+        out string fallbackText,
+        out int consumedRunes)
+    {
+        imageKey = string.Empty;
+        fallbackText = string.Empty;
+        consumedRunes = 0;
+
+        if (runes[startIndex].Value != BlackFlag)
+            return false;
+
+        var keyParts = new List<string> { BlackFlag.ToString("x") };
+        var tagText = new StringBuilder();
+
+        for (var i = startIndex + 1; i < runes.Length; i++)
+        {
+            var value = runes[i].Value;
+            keyParts.Add(value.ToString("x"));
+
+            if (value == CancelTag)
+            {
+                if (tagText.Length == 0)
+                    return false;
+
+                imageKey = string.Join("-", keyParts);
+                fallbackText = tagText.ToString().ToUpperInvariant();
+                consumedRunes = i - startIndex + 1;
+                return true;
+            }
+
+            if (value is < TagStart or > TagEnd)
+                return false;
+
+            tagText.Append((char)(value - TagBase));
+        }
+
+        return false;
     }
 
     private static void AppendRun(TextBlock textBlock, StringBuilder buffer)
