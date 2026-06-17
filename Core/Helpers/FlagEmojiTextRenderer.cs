@@ -17,6 +17,7 @@ public static class FlagEmojiTextRenderer
 {
     private const string FlagArchiveResource = "pack://application:,,,/Assets/twemoji-flags.zip";
     private const int BlackFlag = 0x1F3F4;
+    private const int VariationSelector16 = 0xFE0F;
     private const int RegionalIndicatorA = 0x1F1E6;
     private const int RegionalIndicatorZ = 0x1F1FF;
     private const int TagBase = 0xE0000;
@@ -118,8 +119,12 @@ public static class FlagEmojiTextRenderer
 
         var keyParts = new List<string> { BlackFlag.ToString("x") };
         var tagText = new StringBuilder();
+        var tagStartIndex = startIndex + 1;
 
-        for (var i = startIndex + 1; i < runes.Length; i++)
+        if (tagStartIndex < runes.Length && runes[tagStartIndex].Value == VariationSelector16)
+            tagStartIndex++;
+
+        for (var i = tagStartIndex; i < runes.Length; i++)
         {
             var value = runes[i].Value;
             keyParts.Add(value.ToString("x"));
