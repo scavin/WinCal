@@ -90,7 +90,7 @@ publish.bat
 
 ## 配置
 
-设置文件位于 `%LOCALAPPDATA%\WinCal\settings.json`，支持：
+设置文件位于 `%LOCALAPPDATA%\miniCal\settings.json`，支持：
 
 - 界面主题（深色 / 浅色 / 跟随系统）
 - 字体大小（5 档）
