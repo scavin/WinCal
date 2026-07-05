@@ -228,7 +228,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
         <TextBlock Grid.Column="0" x:Name="FooterLink"
-                           Text="miniCal v1.0 By www.huangao.net"
+                           Text="miniCal v1.3 By www.huangao.net"
                            FontSize="10"
                            Foreground="{DynamicResource TextSecondaryBrush}"
                            VerticalAlignment="Center"

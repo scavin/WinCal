@@ -5,6 +5,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-windows:
     name: Build Windows app
@@ -53,6 +56,13 @@ jobs:
           -p:DebugSymbols=false
           --output dist/self-contained
 
+      - name: Package release archives
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          Compress-Archive -Path dist/framework-dependent/* -DestinationPath "dist/WinCal-${{ github.ref_name }}-win-x64-small.zip"
+          Compress-Archive -Path dist/self-contained/* -DestinationPath "dist/WinCal-${{ github.ref_name }}-win-x64-standalone.zip"
+
       - name: Upload framework-dependent artifact
         uses: actions/upload-artifact@v4
         with:
@@ -66,3 +76,12 @@ jobs:
           name: WinCal-win-x64-standalone
           path: dist/self-contained/**
           if-no-files-found: error
+
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            dist/WinCal-${{ github.ref_name }}-win-x64-small.zip
+            dist/WinCal-${{ github.ref_name }}-win-x64-standalone.zip
