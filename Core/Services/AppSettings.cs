@@ -9,9 +9,12 @@ namespace WinCal.Core.Services;
 /// </summary>
 public class AppSettings
 {
-    private static readonly string SettingsDir = Path.Combine(
+    internal static readonly string AppDataDirectory = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WinCal");
+    private static readonly string SettingsPath = Path.Combine(AppDataDirectory, "settings.json");
+    private static readonly string LegacySettingsDirectory = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "miniCal");
-    private static readonly string SettingsPath = Path.Combine(SettingsDir, "settings.json");
+    private static readonly string LegacySettingsPath = Path.Combine(LegacySettingsDirectory, "settings.json");
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
@@ -58,9 +61,10 @@ public class AppSettings
     {
         try
         {
-            if (File.Exists(SettingsPath))
+            var path = GetSettingsPathForLoad();
+            if (File.Exists(path))
             {
-                var json = File.ReadAllText(SettingsPath);
+                var json = File.ReadAllText(path);
                 return JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? new AppSettings();
             }
         }
@@ -78,13 +82,37 @@ public class AppSettings
     {
         try
         {
-            Directory.CreateDirectory(SettingsDir);
+            Directory.CreateDirectory(AppDataDirectory);
             var json = JsonSerializer.Serialize(this, JsonOptions);
             File.WriteAllText(SettingsPath, json);
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"WinCal: Failed to save settings: {ex}");
+        }
+    }
+
+    private static string GetSettingsPathForLoad()
+    {
+        if (File.Exists(SettingsPath) || !File.Exists(LegacySettingsPath))
+            return SettingsPath;
+
+        try
+        {
+            Directory.CreateDirectory(AppDataDirectory);
+            File.Copy(LegacySettingsPath, SettingsPath, overwrite: false);
+            File.Delete(LegacySettingsPath);
+
+            if (!Directory.EnumerateFileSystemEntries(LegacySettingsDirectory).Any())
+                Directory.Delete(LegacySettingsDirectory);
+
+            System.Diagnostics.Debug.WriteLine("WinCal: Migrated settings from miniCal to WinCal.");
+            return SettingsPath;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"WinCal: Failed to migrate legacy settings: {ex}");
+            return File.Exists(SettingsPath) ? SettingsPath : LegacySettingsPath;
         }
     }
 }

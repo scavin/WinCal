@@ -49,7 +49,7 @@ public class IcsCalendarService : ICalendarService
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "miniCal/1.0 (Calendar Client)");
 
         // 磁盘缓存路径：%LOCALAPPDATA%/WinCal/cache/{url_hash}.ics
-        var cacheDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WinCal", "cache");
+        var cacheDir = Path.Combine(AppSettings.AppDataDirectory, "cache");
         Directory.CreateDirectory(cacheDir);
         var urlHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(_icsUrl)))[..16];
         _diskCachePath = Path.Combine(cacheDir, $"{urlHash}.ics");
