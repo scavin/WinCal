@@ -14,6 +14,8 @@ public class SystemCalendarInterceptor : IDisposable
 {
     private IntPtr _hook;
     private GCHandle _gcHandle;
+    private IntPtr _keyboardHook;
+    private LowLevelKeyboardProc? _keyboardProc;
     private readonly Dispatcher _dispatcher;
     private Action? _showPopupCallback;
     private bool _disposed;
@@ -21,6 +23,11 @@ public class SystemCalendarInterceptor : IDisposable
     private DateTime _allowSystemCalendarUntil;
     private static readonly TimeSpan InterceptCooldown = TimeSpan.FromMilliseconds(500);
     private readonly HashSet<IntPtr> _hiddenWindows = new();
+
+    /// <summary>
+    /// 是否启用系统日历/通知中心拦截。关闭后原生日历和通知中心正常弹出。
+    /// </summary>
+    public bool IsEnabled { get; set; } = true;
 
     // Win32 常量
     private const uint EVENT_MIN = 0x0001;  // EVENT_MIN
@@ -36,6 +43,12 @@ public class SystemCalendarInterceptor : IDisposable
     private const int SW_HIDE = 0;
     private const int SW_SHOW = 5;
     private const int VK_SHIFT = 0x10;
+    private const int VK_LWIN = 0x5B;
+    private const int VK_RWIN = 0x5C;
+    private const int VK_N = 0x4E;
+    private const int WH_KEYBOARD_LL = 13;
+    private const int WM_KEYDOWN = 0x0100;
+    private const int WM_SYSKEYDOWN = 0x0104;
 
     // Win32 API
     [DllImport("user32.dll")]
@@ -48,6 +61,18 @@ public class SystemCalendarInterceptor : IDisposable
 
     [DllImport("user32.dll")]
     private static extern bool UnhookWinEvent(IntPtr hWinEventHook);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool UnhookWindowsHookEx(IntPtr hhk);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    private static extern IntPtr GetModuleHandle(string? lpModuleName);
 
     [DllImport("user32.dll")]
     private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
@@ -109,6 +134,37 @@ public class SystemCalendarInterceptor : IDisposable
     {
         _showPopupCallback = showPopupCallback;
 
+        // 设置全局低级键盘钩子，监听 Win+N 快捷键以放行通知中心
+        try
+        {
+            _keyboardProc = LowLevelKeyboardHandler;
+            IntPtr hMod = IntPtr.Zero;
+            try
+            {
+                using var curProcess = Process.GetCurrentProcess();
+                using var curModule = curProcess.MainModule;
+                if (curModule?.ModuleName != null)
+                {
+                    hMod = GetModuleHandle(curModule.ModuleName);
+                }
+            }
+            catch { }
+
+            _keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, _keyboardProc, hMod, 0);
+            if (_keyboardHook != IntPtr.Zero)
+            {
+                Log("WinCal: ✓ Keyboard hook started for Win+N detection");
+            }
+            else
+            {
+                Log("WinCal: ! Failed to set keyboard hook, error=" + Marshal.GetLastWin32Error());
+            }
+        }
+        catch (Exception ex)
+        {
+            Log($"WinCal: Failed to install keyboard hook: {ex.Message}");
+        }
+
         // 使用 GC handle 防止委托被垃圾回收
         _gcHandle = GCHandle.Alloc(new WinEventDelegate(WinEventProc));
 
@@ -133,11 +189,40 @@ public class SystemCalendarInterceptor : IDisposable
     }
 
     /// <summary>
-    /// 临时放行系统日历，不把下一次任务栏时间弹窗替换成 WinCal。
+    /// 全局键盘钩子处理函数：检测到 Win+N 时放行系统通知中心与日历
+    /// </summary>
+    private IntPtr LowLevelKeyboardHandler(int nCode, IntPtr wParam, IntPtr lParam)
+    {
+        if (nCode >= 0 && (wParam == (IntPtr)WM_KEYDOWN || wParam == (IntPtr)WM_SYSKEYDOWN))
+        {
+            try
+            {
+                var kbd = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
+                if (kbd.vkCode == VK_N)
+                {
+                    bool winDown = (GetAsyncKeyState(VK_LWIN) & 0x8000) != 0 || (GetAsyncKeyState(VK_RWIN) & 0x8000) != 0;
+                    if (winDown)
+                    {
+                        Log("WinCal: Win+N shortcut detected via keyboard hook, temporarily allowing system notification center");
+                        AllowSystemCalendarTemporarily(TimeSpan.FromSeconds(3));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"WinCal: LowLevelKeyboardHandler error: {ex.Message}");
+            }
+        }
+        return CallNextHookEx(_keyboardHook, nCode, wParam, lParam);
+    }
+
+    /// <summary>
+    /// 临时放行系统日历/通知中心，不把下一次任务栏时间弹窗替换成 WinCal。
     /// </summary>
     public void AllowSystemCalendarTemporarily(TimeSpan duration)
     {
         _allowSystemCalendarUntil = DateTime.UtcNow.Add(duration);
+        RestoreHiddenWindows();
     }
 
     /// <summary>
@@ -162,6 +247,9 @@ public class SystemCalendarInterceptor : IDisposable
     {
         try
         {
+            if (!IsEnabled)
+                return;
+
             // 只关心窗口级别的对象（idObject == 0）
             if (idObject != 0 || hwnd == IntPtr.Zero)
                 return;
@@ -194,6 +282,7 @@ public class SystemCalendarInterceptor : IDisposable
             if (ShouldAllowSystemCalendar())
             {
                 Log($"Allowing system calendar window: {hwnd}");
+                ShowWindow(hwnd, SW_SHOW);
                 return;
             }
 
@@ -232,11 +321,26 @@ public class SystemCalendarInterceptor : IDisposable
 
     private bool ShouldAllowSystemCalendar()
     {
+        if (!IsEnabled)
+            return true;
+
         if (DateTime.UtcNow <= _allowSystemCalendarUntil)
             return true;
 
-        // 按住 Shift 点击任务栏时间时，显示 Windows 原生日历。
-        return (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
+        // 按住 Shift 点击任务栏时间时，显示 Windows 原生日历/通知中心
+        if ((GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0)
+            return true;
+
+        // 检查 Win 键和 N 键当前是否同时处于按下状态（作为键盘钩子的双重保障）
+        bool winDown = (GetAsyncKeyState(VK_LWIN) & 0x8000) != 0 || (GetAsyncKeyState(VK_RWIN) & 0x8000) != 0;
+        bool nDown = (GetAsyncKeyState(VK_N) & 0x8000) != 0;
+        if (winDown && nDown)
+        {
+            Log("WinCal: Win+N keys down: allowing system calendar/notification center");
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -363,6 +467,14 @@ public class SystemCalendarInterceptor : IDisposable
             UnhookWinEvent(_hook);
             _hook = IntPtr.Zero;
         }
+
+        if (_keyboardHook != IntPtr.Zero)
+        {
+            UnhookWindowsHookEx(_keyboardHook);
+            _keyboardHook = IntPtr.Zero;
+        }
+
+        _keyboardProc = null;
 
         if (_gcHandle.IsAllocated)
         {

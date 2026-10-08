@@ -99,6 +99,25 @@
                               VerticalAlignment="Center" />
                 </Grid>
 
+                <!-- 替换系统任务栏日历 -->
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <TextBlock Text="替换系统任务栏日历"
+                                   FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="点击任务栏时间时弹出 WinCal；关闭后原生日历和通知中心正常弹出"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   TextWrapping="Wrap" Margin="0,2,8,0" />
+                    </StackPanel>
+                    <CheckBox Grid.Column="1" x:Name="InterceptCalendarCheckBox"
+                              VerticalAlignment="Center" />
+                </Grid>
+
                 <!-- #4 日历数据源 -->
                 <TextBlock Text="日历数据源" FontSize="13" FontWeight="SemiBold"
                            Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8" />

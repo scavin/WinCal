@@ -44,10 +44,11 @@
                         Background="{DynamicResource SeparatorBrush}"
                         Margin="12,4,12,4" />
 
-                <!-- 标题栏：左侧"近期事件"，右侧刷新+齿轮 -->
+                <!-- 标题栏：左侧"近期事件"，右侧通知中心+刷新+齿轮 -->
                 <Grid Grid.Row="1" Margin="12,4,8,4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
@@ -59,8 +60,24 @@
                                Foreground="{DynamicResource TextSecondaryBrush}"
                                VerticalAlignment="Center" />
 
-                    <!-- 刷新按钮 -->
+                    <!-- 通知中心按钮 -->
                     <Button Grid.Column="1"
+                            x:Name="NotificationCenterButton"
+                            Width="24" Height="24"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Click="OnNotificationCenterClick"
+                            ToolTip="打开 Windows 通知中心 (Win+N)"
+                            Margin="0,0,2,0">
+                        <Path Data="M12,22A2,2 0 0,0 14,20H10A2,2 0 0,0 12,22M18,16V11C18,7.93 16.36,5.36 13.5,4.68V4A1.5,1.5 0 0,0 12,2.5A1.5,1.5 0 0,0 10.5,4V4.68C7.63,5.36 6,7.92 6,11V16L4,18V19H20V18L18,16M16,17H8V11C8,8.52 9.51,6.5 12,6.5C14.49,6.5 16,8.52 16,11V17Z"
+                              Fill="{DynamicResource TextSecondaryBrush}"
+                              Stretch="Uniform"
+                              Width="14" Height="14" />
+                    </Button>
+
+                    <!-- 刷新按钮 -->
+                    <Button Grid.Column="2"
                             x:Name="RefreshButton"
                             Width="24" Height="24"
                             Background="Transparent"
@@ -76,7 +93,7 @@
                     </Button>
 
                     <!-- 齿轮图标按钮 -->
-                    <Button Grid.Column="2"
+                    <Button Grid.Column="3"
                             x:Name="SettingsButton"
                             Width="24" Height="24"
                             Background="Transparent"

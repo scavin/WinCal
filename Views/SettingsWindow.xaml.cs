@@ -56,6 +56,9 @@ public partial class SettingsWindow : Window
         // #3 开机自启动
         AutoStartupCheckBox.IsChecked = _settings.AutoStartup;
 
+        // 替换系统任务栏日历
+        InterceptCalendarCheckBox.IsChecked = _settings.InterceptTaskbarCalendar;
+
         // #4 数据源
         DataSourceComboBox.SelectedIndex = (int)_settings.DataSource;
         UpdateIcsPanelVisibility();
@@ -226,6 +229,9 @@ public partial class SettingsWindow : Window
         _settings.AutoStartup = AutoStartupCheckBox.IsChecked == true;
         ApplyAutoStartup(_settings.AutoStartup);
 
+        // 替换系统任务栏日历
+        _settings.InterceptTaskbarCalendar = InterceptCalendarCheckBox.IsChecked == true;
+
         // #4 数据源
         _settings.DataSource = (DataSourceType)DataSourceComboBox.SelectedIndex;
         _settings.IcsUrls = _icsUrls.Select(u => u.FullUrl).ToList();
@@ -245,8 +251,9 @@ public partial class SettingsWindow : Window
             ? WeekStartDay.Monday
             : WeekStartDay.Sunday;
 
-        // 持久化
+        // 持久化并更新拦截器状态
         _settings.Save();
+        App.UpdateInterceptorState();
 
         Close();
     }
@@ -265,6 +272,7 @@ public partial class SettingsWindow : Window
         ThemeComboBox.SelectedIndex = (int)ThemeMode.FollowSystem;
         FontSizeSlider.Value = 0;
         AutoStartupCheckBox.IsChecked = false;
+        InterceptCalendarCheckBox.IsChecked = true;
         DataSourceComboBox.SelectedIndex = (int)DataSourceType.SystemCalendar;
         _icsUrls.Clear();
         RefreshIcsUrlList();

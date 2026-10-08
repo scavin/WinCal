@@ -30,6 +30,9 @@ public class AppSettings
     // #3 开机自启动
     public bool AutoStartup { get; set; } = false;
 
+    // #12 替换系统任务栏时间弹窗（点击任务栏时间弹出 WinCal，关闭后保留系统原生日历与通知中心）
+    public bool InterceptTaskbarCalendar { get; set; } = true;
+
     // #4 数据源类型
     public DataSourceType DataSource { get; set; } = DataSourceType.SystemCalendar;
 

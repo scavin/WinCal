@@ -274,6 +274,20 @@ date.Date < (e.EndTime.Date > e.StartTime.Date ? e.EndTime.Date : e.StartTime.Da
 
 ### 2026-10-08
 
+**解决与 Windows 11 原生通知中心冲突问题（Issue #3）**
+
+1. **设置中增加「替换系统任务栏日历」开关（`InterceptTaskbarCalendar`）**：
+   - 允许用户手动控制是否拦截系统任务栏时间弹窗。
+   - 开启时接管任务栏时间点击；关闭时保留 Windows 11 原生日历与通知中心，用户可纯粹通过托盘图标使用 WinCal。
+   - 切换并保存设置时即时生效，关闭时自动恢复被隐藏的系统原生窗口。
+2. **支持并放行 `Win+N` 快捷键**：
+   - 增加低级键盘钩子（`WH_KEYBOARD_LL`）侦测 `Win+N` 组合键按压；
+   - 在拦截判断中增加 `Win+N` 按键状态检测与临时放行窗口（3秒），确保用户使用原生快捷键呼出 Windows 通知中心时不会被 WinCal 误拦截或隐藏。
+3. **主面板与托盘增加通知中心入口**：
+   - 主面板（`PopupWindow`）操作按钮栏新增「打开 Windows 通知中心 (Win+N)」图标按钮（小铃铛图标），方便用户查看系统历史通知。
+   - 托盘右键菜单项文案优化为「打开 Windows 通知中心 (Win+N)」。
+   - 放行或唤起系统通知中心时自动恢复 `SW_SHOW` 状态，防止被隐藏的原生窗口残留。
+
 **修复系统日历失败回退虚假日程 Bug 及设置说明（Issue #2）**
 
 1. **修复 `CreateSystemService` 兜底 Bug**：当 `WindowsCalendarService` 不可用或反射失败时，回退到 `EmptyCalendarService`（空数据），消除在生产环境下误回退到 `MockCalendarService` 产生虚假日程的问题。

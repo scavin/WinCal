@@ -52,9 +52,9 @@ public partial class App : Application
         // 动态创建右键菜单
         var menu = new ContextMenu();
 
-        var systemCalendarItem = new MenuItem { Header = "打开 Windows 默认日历" };
-        systemCalendarItem.Click += (s, args) => OpenWindowsCalendarFlyout();
-        menu.Items.Add(systemCalendarItem);
+        var notificationCenterItem = new MenuItem { Header = "打开 Windows 通知中心 (Win+N)" };
+        notificationCenterItem.Click += (s, args) => OpenWindowsNotificationCenter();
+        menu.Items.Add(notificationCenterItem);
 
         menu.Items.Add(new Separator());
 
@@ -73,7 +73,10 @@ public partial class App : Application
         // 启动系统日历拦截器：点击任务栏时钟时替换为我们的面板
         try
         {
-            _interceptor = new SystemCalendarInterceptor(Dispatcher);
+            _interceptor = new SystemCalendarInterceptor(Dispatcher)
+            {
+                IsEnabled = settings.InterceptTaskbarCalendar
+            };
             _interceptor.Start(ShowPopup);
         }
         catch (Exception ex)
@@ -124,7 +127,36 @@ public partial class App : Application
         }));
     }
 
-    private void OpenWindowsCalendarFlyout()
+    /// <summary>
+    /// 当设置中的「替换系统任务栏日历」改变时，动态更新拦截器状态
+    /// </summary>
+    public static void UpdateInterceptorState()
+    {
+        ((App)Current).ApplyInterceptorSetting();
+    }
+
+    private void ApplyInterceptorSetting()
+    {
+        var settings = AppSettings.Load();
+        if (_interceptor != null)
+        {
+            _interceptor.IsEnabled = settings.InterceptTaskbarCalendar;
+            if (!settings.InterceptTaskbarCalendar)
+            {
+                _interceptor.RestoreHiddenWindows();
+            }
+        }
+    }
+
+    /// <summary>
+    /// 打开 Windows 原生通知中心与日历
+    /// </summary>
+    public static void OpenNotificationCenter()
+    {
+        ((App)Current).OpenWindowsNotificationCenter();
+    }
+
+    private void OpenWindowsNotificationCenter()
     {
         try
         {
@@ -142,9 +174,11 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"WinCal: OpenWindowsCalendarFlyout error: {ex}");
+            System.Diagnostics.Debug.WriteLine($"WinCal: OpenWindowsNotificationCenter error: {ex}");
         }
     }
+
+    private void OpenWindowsCalendarFlyout() => OpenWindowsNotificationCenter();
 
     /// <summary>
     /// 显示日历面板（不切换，始终显示）。用于拦截器回调。

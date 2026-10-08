@@ -183,8 +183,8 @@ public partial class PopupWindow : Window
             return;
         }
 
-        // 忽略齿轮按钮区域
-        if (IsMouseOverSettingsButton(hitResult.VisualHit))
+        // 忽略右上角按钮区域
+        if (IsMouseOverActionButtons(hitResult.VisualHit))
         {
             CloseDetailWindow();
             return;
@@ -202,12 +202,12 @@ public partial class PopupWindow : Window
     }
 
     /// <summary>
-    /// 判断鼠标是否在齿轮按钮上
+    /// 判断鼠标是否在右上角操作按钮（设置、刷新、通知中心）上
     /// </summary>
-    private bool IsMouseOverSettingsButton(DependencyObject visualHit)
+    private bool IsMouseOverActionButtons(DependencyObject visualHit)
     {
         var btn = FindAncestor<Button>(visualHit);
-        return btn == SettingsButton;
+        return btn == SettingsButton || btn == RefreshButton || btn == NotificationCenterButton;
     }
 
     /// <summary>
@@ -281,6 +281,16 @@ public partial class PopupWindow : Window
         {
             RefreshButton.IsEnabled = true;
         }
+    }
+
+    /// <summary>
+    /// 点击打开系统通知中心与日历
+    /// </summary>
+    private void OnNotificationCenterClick(object sender, RoutedEventArgs e)
+    {
+        CloseDetailWindow();
+        Hide();
+        App.OpenNotificationCenter();
     }
 
     /// <summary>
