@@ -62,10 +62,12 @@ public partial class EventDetailPopup : Border
     /// </summary>
     private static string FormatDateAndTime(CalendarEvent evt)
     {
-        var dateStr = evt.StartTime.ToString("M月d日");
+        var dateStr = LocalizationHelper.IsEnglish
+            ? evt.StartTime.ToString("MMM d", LocalizationHelper.CurrentCulture)
+            : evt.StartTime.ToString("M月d日");
 
         if (evt.IsAllDay)
-            return $"{dateStr}  全天";
+            return $"{dateStr}  {LocalizationHelper.GetString("Loc_AllDay")}";
 
         var timeStr = EventListViewModel.FormatEventTime(evt);
         return $"{dateStr}  {timeStr}";

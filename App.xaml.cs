@@ -42,33 +42,13 @@ public partial class App : Application
         // 动态生成带今日日期数字的图标
         _trayIcon.Icon = TrayIconGenerator.Generate(DateTime.Today.Day);
 
-        // 更新托盘提示文本
-        _trayIcon.ToolTipText = $"miniCal - {DateTime.Now:yyyy年M月d日 dddd}";
-
-        // 应用保存的主题设置
+        // 应用保存的设置与语言
         var settings = AppSettings.Load();
+        LocalizationHelper.ApplyLanguage(settings.Language);
         ThemeHelper.ApplyTheme(settings.ThemeMode);
 
-        // 动态创建右键菜单
-        var menu = new ContextMenu();
-
-        var notificationCenterItem = new MenuItem { Header = "打开 Windows 通知中心 (Win+N)" };
-        notificationCenterItem.Click += (s, args) => OpenWindowsNotificationCenter();
-        menu.Items.Add(notificationCenterItem);
-
-        menu.Items.Add(new Separator());
-
-        var settingsItem = new MenuItem { Header = "设置" };
-        settingsItem.Click += (s, args) => OpenSettings();
-        menu.Items.Add(settingsItem);
-
-        menu.Items.Add(new Separator());
-
-        var exitItem = new MenuItem { Header = "退出" };
-        exitItem.Click += (s, args) => Shutdown();
-        menu.Items.Add(exitItem);
-
-        _trayIcon.ContextMenu = menu;
+        // 设置托盘提示与右键菜单
+        UpdateTrayIconAndMenu();
 
         // 启动系统日历拦截器：点击任务栏时钟时替换为我们的面板
         try
@@ -83,6 +63,47 @@ public partial class App : Application
         {
             System.Diagnostics.Debug.WriteLine($"WinCal: Interceptor failed: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// 更新托盘提示文本与右键菜单
+    /// </summary>
+    public void UpdateTrayIconAndMenu()
+    {
+        if (_trayIcon == null) return;
+
+        // 更新托盘提示文本
+        var dateFormat = LocalizationHelper.IsEnglish ? "dddd, MMMM d, yyyy" : "yyyy年M月d日 dddd";
+        _trayIcon.ToolTipText = $"miniCal - {DateTime.Now.ToString(dateFormat, LocalizationHelper.CurrentCulture)}";
+
+        // 动态创建右键菜单
+        var menu = new ContextMenu();
+
+        var notificationCenterItem = new MenuItem { Header = LocalizationHelper.GetString("Loc_OpenNotificationCenter") };
+        notificationCenterItem.Click += (s, args) => OpenWindowsNotificationCenter();
+        menu.Items.Add(notificationCenterItem);
+
+        menu.Items.Add(new Separator());
+
+        var settingsItem = new MenuItem { Header = LocalizationHelper.GetString("Loc_Settings") };
+        settingsItem.Click += (s, args) => OpenSettings();
+        menu.Items.Add(settingsItem);
+
+        menu.Items.Add(new Separator());
+
+        var exitItem = new MenuItem { Header = LocalizationHelper.GetString("Loc_Exit") };
+        exitItem.Click += (s, args) => Shutdown();
+        menu.Items.Add(exitItem);
+
+        _trayIcon.ContextMenu = menu;
+    }
+
+    /// <summary>
+    /// 当语言切换时更新托盘菜单和提示
+    /// </summary>
+    public static void UpdateLanguage()
+    {
+        ((App)Current).UpdateTrayIconAndMenu();
     }
 
     /// <summary>
@@ -112,7 +133,7 @@ public partial class App : Application
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "wincal_error.log");
             System.IO.File.WriteAllText(logPath,
                 $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\n{ex}\n\n--- InnerException ---\n{ex.InnerException}");
-            MessageBox.Show($"错误已写入桌面 minical_error.log", "miniCal 错误",
+            MessageBox.Show(LocalizationHelper.GetString("Loc_ErrorLogged"), LocalizationHelper.GetString("Loc_ErrorTitle"),
                 MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }

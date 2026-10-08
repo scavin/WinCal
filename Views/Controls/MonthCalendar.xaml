@@ -40,7 +40,7 @@
                            Foreground="{DynamicResource TextPrimaryBrush}"
                            VerticalAlignment="Center" />
                 <Button x:Name="TodayButton"
-                        Content="今天"
+                        Content="{DynamicResource Loc_Today}"
                         FontSize="11" FontWeight="SemiBold"
                         Padding="6,2"
                         Margin="8,0,0,0"

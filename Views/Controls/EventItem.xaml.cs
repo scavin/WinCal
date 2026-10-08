@@ -51,13 +51,21 @@ public partial class EventItem : UserControl
             if (startDate.Year != endDate.Year)
                 datePart = $"{startDate.Year}/{startDate.Month}/{startDate.Day}-{endDate.Year}/{endDate.Month}/{endDate.Day}";
             else
-                datePart = $"{startDate.Month}月{startDate.Day}日-{endDate.Month}月{endDate.Day}日";
+                datePart = LocalizationHelper.IsEnglish
+                    ? $"{startDate.ToString("MMM d", LocalizationHelper.CurrentCulture)} - {endDate.ToString("MMM d", LocalizationHelper.CurrentCulture)}"
+                    : $"{startDate.Month}月{startDate.Day}日-{endDate.Month}月{endDate.Day}日";
         }
         else
         {
-            datePart = $"{startDate.Month}月{startDate.Day}日";
+            datePart = LocalizationHelper.IsEnglish
+                ? startDate.ToString("MMM d", LocalizationHelper.CurrentCulture)
+                : $"{startDate.Month}月{startDate.Day}日";
         }
-        FlagEmojiTextRenderer.SetText(item.TitleText, $"{evt.Title}({datePart})");
+
+        var fullTitle = LocalizationHelper.IsEnglish
+            ? $"{evt.Title} ({datePart})"
+            : $"{evt.Title}({datePart})";
+        FlagEmojiTextRenderer.SetText(item.TitleText, fullTitle);
 
         // 设置时间文本
         item.TimeText.Text = EventListViewModel.FormatEventSummary(evt);

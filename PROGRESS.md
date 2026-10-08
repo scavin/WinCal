@@ -58,6 +58,7 @@
 
 ### 设置界面（⭐ 新功能 2026-05-05 ~ 05-06）
 - [x] 设置窗口 UI（独立顶层窗口）
+- [x] 界面多语言支持（跟随系统 / English / 简体中文，⭐ 2026-10-08）
 - [x] 界面颜色主题（深色 / 浅色 / 跟随系统）
 - [x] 界面字体大小（5 档切换）
 - [x] 开机自启动开关
@@ -79,6 +80,7 @@
 - [x] Windows 日历 API 接入（WindowsCalendarService，需 Windows SDK 暂未启用）
 
 ### 工具类
+- [x] 多语言与本地化服务（LocalizationHelper）
 - [x] 窗口定位（WindowPositionHelper）
 - [x] 开机自启注册表操作（StartupHelper）
 - [x] 托盘图标动态生成（TrayIconGenerator）

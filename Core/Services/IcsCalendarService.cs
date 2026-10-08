@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
+using WinCal.Core.Helpers;
 using WinCal.Core.Models;
 using Ical.Net;
 using Ical.Net.CalendarComponents;
@@ -124,7 +125,7 @@ public class IcsCalendarService : ICalendarService
         var available = await IsAvailableAsync();
         return new List<CalendarAccountInfo>
         {
-            new("ICS 订阅", _calendarName, "ics-subscription", _color, available)
+            new(LocalizationHelper.GetString("Loc_IcsSubscription"), _calendarName, "ics-subscription", _color, available)
         };
     }
 
@@ -313,7 +314,7 @@ public class IcsCalendarService : ICalendarService
 
         var title = !string.IsNullOrWhiteSpace(icalEvent.Summary)
             ? icalEvent.Summary
-            : "(无标题)";
+            : LocalizationHelper.GetString("Loc_NoTitle");
 
         var location = icalEvent.Location ?? "";
         var description = icalEvent.Description ?? "";

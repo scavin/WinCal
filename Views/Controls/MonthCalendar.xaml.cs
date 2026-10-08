@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using WinCal.Core.Helpers;
 using WinCal.ViewModels;
 
 namespace WinCal.Views.Controls;
@@ -53,10 +54,20 @@ public partial class MonthCalendar : UserControl
     /// </summary>
     public void UpdateWeekHeaders(int weekStartDay)
     {
-        // 周一: 一二三四五六日, 周日: 日一二三四五六
-        string[] monStart = { "一", "二", "三", "四", "五", "六", "日" };
-        string[] sunStart = { "日", "一", "二", "三", "四", "五", "六" };
-        var headers = weekStartDay == 1 ? monStart : sunStart;
+        string[] headers;
+        if (LocalizationHelper.IsEnglish)
+        {
+            string[] monStart = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+            string[] sunStart = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+            headers = weekStartDay == 1 ? monStart : sunStart;
+        }
+        else
+        {
+            // 周一: 一二三四五六日, 周日: 日一二三四五六
+            string[] monStart = { "一", "二", "三", "四", "五", "六", "日" };
+            string[] sunStart = { "日", "一", "二", "三", "四", "五", "六" };
+            headers = weekStartDay == 1 ? monStart : sunStart;
+        }
 
         var textBlocks = new[] { H0, H1, H2, H3, H4, H5, H6 };
         for (int i = 0; i < 7; i++)

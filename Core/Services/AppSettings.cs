@@ -21,6 +21,9 @@ public class AppSettings
         Converters = { new JsonStringEnumConverter() }
     };
 
+    // #0 界面语言：跟随系统/English/简体中文
+    public AppLanguage Language { get; set; } = AppLanguage.FollowSystem;
+
     // #1 颜色主题：浅色/深色/跟随系统
     public ThemeMode ThemeMode { get; set; } = ThemeMode.FollowSystem;
 
@@ -118,6 +121,13 @@ public class AppSettings
             return File.Exists(SettingsPath) ? SettingsPath : LegacySettingsPath;
         }
     }
+}
+
+public enum AppLanguage
+{
+    FollowSystem,
+    English,
+    SimplifiedChinese
 }
 
 public enum ThemeMode

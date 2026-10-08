@@ -1,7 +1,7 @@
 <Window x:Class="WinCal.Views.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="miniCal 设置"
+        Title="{DynamicResource Loc_SettingsTitle}"
         Width="420" Height="560"
         WindowStyle="None"
         AllowsTransparency="True"
@@ -31,7 +31,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0" Text="⚙ 设置"
+                <TextBlock Grid.Column="0" Text="{DynamicResource Loc_SettingsHeader}"
                            FontSize="15" FontWeight="SemiBold"
                            Foreground="{DynamicResource TextPrimaryBrush}"
                            VerticalAlignment="Center" />
@@ -51,18 +51,28 @@
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="20,16,20,16">
 
+                <!-- #0 界面语言 -->
+                <TextBlock Text="{DynamicResource Loc_Language}" FontSize="13" FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8" />
+                <ComboBox x:Name="LanguageComboBox" Margin="0,0,0,20" Padding="8,6"
+                          SelectedIndex="0" SelectionChanged="OnLanguageChanged">
+                    <ComboBoxItem Content="{DynamicResource Loc_Lang_FollowSystem}" />
+                    <ComboBoxItem Content="{DynamicResource Loc_Lang_English}" />
+                    <ComboBoxItem Content="{DynamicResource Loc_Lang_SimplifiedChinese}" />
+                </ComboBox>
+
                 <!-- #1 颜色主题 -->
-                <TextBlock Text="颜色主题" FontSize="13" FontWeight="SemiBold"
+                <TextBlock Text="{DynamicResource Loc_Theme}" FontSize="13" FontWeight="SemiBold"
                            Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8" />
                 <ComboBox x:Name="ThemeComboBox" Margin="0,0,0,20" Padding="8,6"
                           SelectedIndex="0">
-                    <ComboBoxItem Content="跟随系统" />
-                    <ComboBoxItem Content="浅色" />
-                    <ComboBoxItem Content="深色" />
+                    <ComboBoxItem Content="{DynamicResource Loc_Theme_FollowSystem}" />
+                    <ComboBoxItem Content="{DynamicResource Loc_Theme_Light}" />
+                    <ComboBoxItem Content="{DynamicResource Loc_Theme_Dark}" />
                 </ComboBox>
 
                 <!-- #2 字体大小 -->
-                <TextBlock Text="字体大小" FontSize="13" FontWeight="SemiBold"
+                <TextBlock Text="{DynamicResource Loc_FontSize}" FontSize="13" FontWeight="SemiBold"
                            Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8" />
                 <Grid Margin="0,0,0,4">
                     <Grid.ColumnDefinitions>
@@ -91,7 +101,7 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="开机自启动"
+                    <TextBlock Grid.Column="0" Text="{DynamicResource Loc_AutoStartup}"
                                FontSize="13" FontWeight="SemiBold"
                                Foreground="{DynamicResource TextPrimaryBrush}"
                                VerticalAlignment="Center" />
@@ -106,10 +116,10 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock Text="替换系统任务栏日历"
+                        <TextBlock Text="{DynamicResource Loc_InterceptCalendar}"
                                    FontSize="13" FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextPrimaryBrush}" />
-                        <TextBlock Text="点击任务栏时间时弹出 WinCal；关闭后原生日历和通知中心正常弹出"
+                        <TextBlock Text="{DynamicResource Loc_InterceptCalendarDesc}"
                                    FontSize="11"
                                    Foreground="{DynamicResource TextSecondaryBrush}"
                                    TextWrapping="Wrap" Margin="0,2,8,0" />
@@ -119,13 +129,13 @@
                 </Grid>
 
                 <!-- #4 日历数据源 -->
-                <TextBlock Text="日历数据源" FontSize="13" FontWeight="SemiBold"
+                <TextBlock Text="{DynamicResource Loc_DataSource}" FontSize="13" FontWeight="SemiBold"
                            Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8" />
                 <ComboBox x:Name="DataSourceComboBox" Margin="0,0,0,8" Padding="8,6"
                           SelectedIndex="0" SelectionChanged="OnDataSourceChanged">
-                    <ComboBoxItem Content="系统日历" />
-                    <ComboBoxItem Content="ICS 订阅链接" />
-                    <ComboBoxItem Content="两者都用" />
+                    <ComboBoxItem Content="{DynamicResource Loc_DataSource_System}" />
+                    <ComboBoxItem Content="{DynamicResource Loc_DataSource_Ics}" />
+                    <ComboBoxItem Content="{DynamicResource Loc_DataSource_Both}" />
                 </ComboBox>
 
                 <!-- 系统日历说明提示 -->
@@ -133,11 +143,8 @@
                         Background="{DynamicResource CardBackgroundBrush}"
                         BorderBrush="{DynamicResource SeparatorBrush}"
                         BorderThickness="1" CornerRadius="6">
-                    <TextBlock FontSize="11" TextWrapping="Wrap" LineHeight="16"
-                               Foreground="{DynamicResource TextSecondaryBrush}">
-                        <Run Text="💡 说明：" FontWeight="SemiBold" />
-                        <Run Text="系统日历读取 Windows 自带「日历」应用数据。若你使用 Outlook 桌面经典版（Exchange / MAPI），其日程存储于独立数据文件（.ost），暂不支持直接读取。请通过「ICS 订阅链接」添加，或将账户同步至 Windows 自带日历中。" />
-                    </TextBlock>
+                    <TextBlock x:Name="SystemCalendarTipText" FontSize="11" TextWrapping="Wrap" LineHeight="16"
+                               Foreground="{DynamicResource TextSecondaryBrush}" />
                 </Border>
 
                 <!-- ICS URL 订阅列表 -->
@@ -178,7 +185,7 @@
                                         </Grid>
                                         <TextBox Text="{Binding Alias, UpdateSourceTrigger=PropertyChanged}"
                                                  FontSize="11" Padding="4,3" Margin="14,4,0,0"
-                                                 ToolTip="为此订阅设置一个显示名称"
+                                                 ToolTip="{DynamicResource Loc_IcsAliasTip}"
                                                  Tag="{Binding Index}" />
                                     </StackPanel>
                                 </Border>
@@ -194,8 +201,8 @@
                         </Grid.ColumnDefinitions>
                         <TextBox Grid.Column="0" x:Name="NewIcsUrlTextBox"
                                  Padding="8,6"
-                                 ToolTip="输入 .ics 日历订阅链接" />
-                        <Button Grid.Column="1" Content="添加"
+                                 ToolTip="{DynamicResource Loc_IcsUrlTip}" />
+                        <Button Grid.Column="1" Content="{DynamicResource Loc_Add}"
                                 Padding="12,6" Margin="6,0,0,0"
                                 Background="{DynamicResource TodayAccentBrush}"
                                 Foreground="White"
@@ -211,38 +218,38 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="刷新频率"
+                        <TextBlock Grid.Column="0" Text="{DynamicResource Loc_RefreshInterval}"
                                    FontSize="11"
                                    Foreground="{DynamicResource TextSecondaryBrush}"
                                    VerticalAlignment="Center" />
                         <ComboBox Grid.Column="1" x:Name="IcsRefreshCombo"
                                   Margin="8,0,0,0" Padding="6,4"
                                   SelectedIndex="1" HorizontalAlignment="Left">
-                            <ComboBoxItem Content="10 分钟" />
-                            <ComboBoxItem Content="30 分钟" />
-                            <ComboBoxItem Content="60 分钟" />
-                            <ComboBoxItem Content="120 分钟" />
+                            <ComboBoxItem Content="{DynamicResource Loc_Min10}" />
+                            <ComboBoxItem Content="{DynamicResource Loc_Min30}" />
+                            <ComboBoxItem Content="{DynamicResource Loc_Min60}" />
+                            <ComboBoxItem Content="{DynamicResource Loc_Min120}" />
                         </ComboBox>
                     </Grid>
                 </StackPanel>
 
                 <!-- #5 近期事件天数 -->
-                <TextBlock Text="近期事件显示范围" FontSize="13" FontWeight="SemiBold"
+                <TextBlock Text="{DynamicResource Loc_UpcomingDaysRange}" FontSize="13" FontWeight="SemiBold"
                            Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8" />
                 <ComboBox x:Name="UpcomingDaysCombo" Margin="0,0,0,20" Padding="8,6"
                           SelectedIndex="1">
-                    <ComboBoxItem Content="1 天" />
-                    <ComboBoxItem Content="3 天" />
-                    <ComboBoxItem Content="7 天" />
+                    <ComboBoxItem Content="{DynamicResource Loc_Day1}" />
+                    <ComboBoxItem Content="{DynamicResource Loc_Day3}" />
+                    <ComboBoxItem Content="{DynamicResource Loc_Day7}" />
                 </ComboBox>
 
                 <!-- #6 周起始日 -->
-                <TextBlock Text="周起始日" FontSize="13" FontWeight="SemiBold"
+                <TextBlock Text="{DynamicResource Loc_WeekStartDay}" FontSize="13" FontWeight="SemiBold"
                            Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8" />
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                    <RadioButton x:Name="WeekStartSunday" Content="周日" Margin="0,0,20,0"
+                    <RadioButton x:Name="WeekStartSunday" Content="{DynamicResource Loc_Sunday}" Margin="0,0,20,0"
                                  VerticalAlignment="Center" />
-                    <RadioButton x:Name="WeekStartMonday" Content="周一"
+                    <RadioButton x:Name="WeekStartMonday" Content="{DynamicResource Loc_Monday}"
                                  VerticalAlignment="Center" />
                 </StackPanel>
 
@@ -266,14 +273,14 @@
                            Cursor="Hand"
                            MouseDown="OnFooterLinkClick" />
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Content="恢复默认"
+                    <Button Content="{DynamicResource Loc_RestoreDefaults}"
                             Padding="12,6" Margin="0,0,8,0"
                             Background="Transparent"
                             BorderBrush="{DynamicResource SeparatorBrush}"
                             BorderThickness="1"
                             Cursor="Hand"
                             Click="OnResetDefaults" />
-                    <Button Content="退出程序"
+                    <Button Content="{DynamicResource Loc_ExitApp}"
                             Padding="12,6" Margin="0,0,8,0"
                             Background="Transparent"
                             BorderBrush="#FFC62828"
@@ -281,7 +288,7 @@
                             BorderThickness="1"
                             Cursor="Hand"
                             Click="OnExitApp" />
-                    <Button Content="保存"
+                    <Button Content="{DynamicResource Loc_Save}"
                             Padding="20,6"
                             Background="{DynamicResource TodayAccentBrush}"
                             Foreground="White"

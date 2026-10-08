@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using WinCal.Core.Helpers;
 using WinCal.Core.Models;
 
 namespace WinCal.ViewModels;
@@ -65,6 +66,20 @@ public class EventListViewModel : INotifyPropertyChanged
         var today = DateTime.Today;
         var diff = (eventDate.Date - today).Days;
 
+        if (LocalizationHelper.IsEnglish)
+        {
+            return diff switch
+            {
+                0 => "Today",
+                1 => "Tomorrow",
+                2 => "In 2 days",
+                -1 => "Yesterday",
+                _ when diff > 0 && diff < 7 => LocalizationHelper.CurrentCulture.DateTimeFormat
+                    .GetDayName(eventDate.DayOfWeek),
+                _ => eventDate.ToString("MMM d", LocalizationHelper.CurrentCulture)
+            };
+        }
+
         return diff switch
         {
             0 => "今天",
@@ -83,7 +98,7 @@ public class EventListViewModel : INotifyPropertyChanged
     public static string FormatEventTime(CalendarEvent evt)
     {
         if (evt.IsAllDay)
-            return "全天";
+            return LocalizationHelper.GetString("Loc_AllDay");
 
         var start = evt.StartTime;
         var end = evt.EndTime;
@@ -95,6 +110,11 @@ public class EventListViewModel : INotifyPropertyChanged
         }
 
         // 跨天
+        if (LocalizationHelper.IsEnglish)
+        {
+            return $"{start.ToString("MMM d HH:mm", LocalizationHelper.CurrentCulture)} - {end.ToString("MMM d HH:mm", LocalizationHelper.CurrentCulture)}";
+        }
+
         return $"{start:M月d日 HH:mm} - {end:M月d日 HH:mm}";
     }
 
@@ -103,7 +123,7 @@ public class EventListViewModel : INotifyPropertyChanged
     /// </summary>
     public static string FormatEventSummary(CalendarEvent evt)
     {
-        string time = evt.IsAllDay ? "全天" : evt.StartTime.ToString("HH:mm");
+        string time = evt.IsAllDay ? LocalizationHelper.GetString("Loc_AllDay") : evt.StartTime.ToString("HH:mm");
         return time;
     }
 

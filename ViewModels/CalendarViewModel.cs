@@ -208,7 +208,8 @@ public class CalendarViewModel : INotifyPropertyChanged
         }
         catch
         {
-            return $"订阅 {index + 1}";
+            var prefix = LocalizationHelper.GetString("Loc_SubscriptionPrefix");
+            return $"{prefix} {index + 1}";
         }
     }
 
@@ -408,8 +409,8 @@ public class CalendarViewModel : INotifyPropertyChanged
                     : date.Date == e.StartTime.Date
             ).ToList();
 
-            // 获取农历文本
-            string lunarText = LunarCalendarHelper.GetLunarDateText(date);
+            // 获取农历文本（英文界面下隐藏农历）
+            string lunarText = LocalizationHelper.IsEnglish ? string.Empty : LunarCalendarHelper.GetLunarDateText(date);
 
             CalendarDays.Add(new CalendarDay(
                 Date: date,
@@ -475,7 +476,14 @@ public class CalendarViewModel : INotifyPropertyChanged
 
     private void UpdateMonthDisplay()
     {
-        MonthDisplay = $"{Year}年{Month}月";
+        if (LocalizationHelper.IsEnglish)
+        {
+            MonthDisplay = new DateTime(Year, Month, 1).ToString("MMMM yyyy", LocalizationHelper.CurrentCulture);
+        }
+        else
+        {
+            MonthDisplay = $"{Year}年{Month}月";
+        }
     }
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)

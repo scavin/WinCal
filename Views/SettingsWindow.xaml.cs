@@ -26,7 +26,6 @@ public partial class SettingsWindow : Window
     private bool _initialized = false;
     private readonly List<IcsUrlItem> _icsUrls = new();
 
-    private static readonly string[] FontSizeLabels = { "最小", "较小", "标准", "较大", "最大" };
     private static readonly int[] IcsRefreshValues = { 10, 30, 60, 120 };
     private static readonly string[] SubscriptionColors = {
         "#FF6D00", "#0078D4", "#E91E63", "#00897B", "#7B1FA2", "#C62828", "#2E7D32", "#F57F17"
@@ -46,12 +45,16 @@ public partial class SettingsWindow : Window
     /// </summary>
     private void LoadSettings()
     {
+        // #0 界面语言
+        LanguageComboBox.SelectedIndex = (int)_settings.Language;
+
         // #1 颜色主题
         ThemeComboBox.SelectedIndex = (int)_settings.ThemeMode;
 
         // #2 字体大小
         FontSizeSlider.Value = _settings.FontSizeOffset;
         UpdateFontSizeLabel();
+        UpdateSystemCalendarTip();
 
         // #3 开机自启动
         AutoStartupCheckBox.IsChecked = _settings.AutoStartup;
@@ -144,7 +147,9 @@ public partial class SettingsWindow : Window
 
         if (!url.StartsWith("http://") && !url.StartsWith("https://"))
         {
-            MessageBox.Show("请输入有效的 HTTP/HTTPS 链接", "提示",
+            MessageBox.Show(
+                LocalizationHelper.GetString("Loc_InvalidUrlMsg"),
+                LocalizationHelper.GetString("Loc_PromptTitle"),
                 MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
@@ -187,7 +192,27 @@ public partial class SettingsWindow : Window
     private void UpdateFontSizeLabel()
     {
         var idx = (int)FontSizeSlider.Value + 2; // -2..2 → 0..4
-        FontSizeLabel.Text = FontSizeLabels[idx];
+        var labels = LocalizationHelper.GetFontSizeLabels();
+        FontSizeLabel.Text = labels[idx];
+    }
+
+    private void OnLanguageChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_initialized) return;
+        var lang = (AppLanguage)LanguageComboBox.SelectedIndex;
+        LocalizationHelper.ApplyLanguage(lang);
+        UpdateSystemCalendarTip();
+        UpdateFontSizeLabel();
+    }
+
+    private void UpdateSystemCalendarTip()
+    {
+        if (SystemCalendarTipText == null) return;
+        SystemCalendarTipText.Inlines.Clear();
+        SystemCalendarTipText.Inlines.Add(new System.Windows.Documents.Bold(
+            new System.Windows.Documents.Run(LocalizationHelper.GetString("Loc_SystemCalendarTipTitle"))));
+        SystemCalendarTipText.Inlines.Add(
+            new System.Windows.Documents.Run(LocalizationHelper.GetString("Loc_SystemCalendarTipContent")));
     }
 
     private void OnDataSourceChanged(object sender, SelectionChangedEventArgs e)
@@ -216,6 +241,10 @@ public partial class SettingsWindow : Window
     /// </summary>
     private void OnSave(object sender, RoutedEventArgs e)
     {
+        // #0 语言
+        _settings.Language = (AppLanguage)LanguageComboBox.SelectedIndex;
+        LocalizationHelper.ApplyLanguage(_settings.Language);
+
         // #1 颜色主题
         _settings.ThemeMode = (ThemeMode)ThemeComboBox.SelectedIndex;
 
@@ -251,9 +280,10 @@ public partial class SettingsWindow : Window
             ? WeekStartDay.Monday
             : WeekStartDay.Sunday;
 
-        // 持久化并更新拦截器状态
+        // 持久化并更新拦截器状态与语言
         _settings.Save();
         App.UpdateInterceptorState();
+        App.UpdateLanguage();
 
         Close();
     }
@@ -264,11 +294,13 @@ public partial class SettingsWindow : Window
     private void OnResetDefaults(object sender, RoutedEventArgs e)
     {
         var result = MessageBox.Show(
-            "确定恢复所有设置为默认值？", "恢复默认",
+            LocalizationHelper.GetString("Loc_ResetDefaultsConfirm"),
+            LocalizationHelper.GetString("Loc_ResetDefaultsTitle"),
             MessageBoxButton.OKCancel, MessageBoxImage.Question);
 
         if (result != MessageBoxResult.OK) return;
 
+        LanguageComboBox.SelectedIndex = (int)AppLanguage.FollowSystem;
         ThemeComboBox.SelectedIndex = (int)ThemeMode.FollowSystem;
         FontSizeSlider.Value = 0;
         AutoStartupCheckBox.IsChecked = false;
@@ -294,7 +326,9 @@ public partial class SettingsWindow : Window
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"设置开机自启动失败：{ex.Message}", "错误",
+            MessageBox.Show(
+                LocalizationHelper.GetString("Loc_AutoStartupFail", ex.Message),
+                LocalizationHelper.GetString("Loc_Error"),
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
@@ -310,19 +344,30 @@ public partial class SettingsWindow : Window
 
     private void OnCloseClick(object sender, RoutedEventArgs e)
     {
+        // 如果未保存关闭，恢复之前保存的语言
+        LocalizationHelper.ApplyLanguage(_settings.Language);
         Close();
     }
 
     private void OnExitApp(object sender, RoutedEventArgs e)
     {
         var result = MessageBox.Show(
-            "确定退出 miniCal？", "退出程序",
+            LocalizationHelper.GetString("Loc_ExitAppConfirm"),
+            LocalizationHelper.GetString("Loc_ExitAppTitle"),
             MessageBoxButton.OKCancel, MessageBoxImage.Question);
 
         if (result == MessageBoxResult.OK)
         {
             Application.Current.Shutdown();
         }
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        // 确保语言与已保存的设置保持一致
+        var saved = AppSettings.Load();
+        LocalizationHelper.ApplyLanguage(saved.Language);
+        base.OnClosed(e);
     }
 
     /// <summary>
