@@ -1,10 +1,11 @@
+#if DEBUG
 using System.Diagnostics;
 using WinCal.Core.Models;
 
 namespace WinCal.Core.Services;
 
 /// <summary>
-/// 模拟日历服务（开发调试用）
+/// 模拟日历服务（仅限开发调试使用，生产构建不包含此服务）
 /// </summary>
 public class MockCalendarService : ICalendarService
 {
@@ -79,3 +80,4 @@ public class MockCalendarService : ICalendarService
         return calendars[rng.Next(calendars.Length)];
     }
 }
+#endif

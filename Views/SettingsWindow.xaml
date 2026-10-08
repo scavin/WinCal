@@ -109,6 +109,18 @@
                     <ComboBoxItem Content="两者都用" />
                 </ComboBox>
 
+                <!-- 系统日历说明提示 -->
+                <Border x:Name="SystemCalendarTip" Visibility="Visible" Margin="0,0,0,12" Padding="10,8"
+                        Background="{DynamicResource CardBackgroundBrush}"
+                        BorderBrush="{DynamicResource SeparatorBrush}"
+                        BorderThickness="1" CornerRadius="6">
+                    <TextBlock FontSize="11" TextWrapping="Wrap" LineHeight="16"
+                               Foreground="{DynamicResource TextSecondaryBrush}">
+                        <Run Text="💡 说明：" FontWeight="SemiBold" />
+                        <Run Text="系统日历读取 Windows 自带「日历」应用数据。若你使用 Outlook 桌面经典版（Exchange / MAPI），其日程存储于独立数据文件（.ost），暂不支持直接读取。请通过「ICS 订阅链接」添加，或将账户同步至 Windows 自带日历中。" />
+                    </TextBlock>
+                </Border>
+
                 <!-- ICS URL 订阅列表 -->
                 <StackPanel x:Name="IcsPanel" Visibility="Collapsed" Margin="0,0,0,20">
                     <!-- 已添加的 URL 列表 -->

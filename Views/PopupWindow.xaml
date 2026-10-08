@@ -127,6 +127,7 @@
                 <TextBlock Grid.Row="2"
                            x:Name="NoEventsText"
                            Text="暂无近期事件"
+                           ToolTip="若使用 Outlook 桌面经典版，请在设置中通过 ICS 订阅链接添加"
                            FontSize="12"
                            Foreground="{DynamicResource TextSecondaryBrush}"
                            HorizontalAlignment="Center"

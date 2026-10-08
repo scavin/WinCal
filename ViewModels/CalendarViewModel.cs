@@ -146,7 +146,7 @@ public class CalendarViewModel : INotifyPropertyChanged
             // WinRT not available
         }
 
-        return new MockCalendarService();
+        return new EmptyCalendarService();
     }
 
     private static readonly string[] SubscriptionColors = {

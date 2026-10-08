@@ -272,6 +272,15 @@ date.Date < (e.EndTime.Date > e.StartTime.Date ? e.EndTime.Date : e.StartTime.Da
 
 ## 开发日志
 
+### 2026-10-08
+
+**修复系统日历失败回退虚假日程 Bug 及设置说明（Issue #2）**
+
+1. **修复 `CreateSystemService` 兜底 Bug**：当 `WindowsCalendarService` 不可用或反射失败时，回退到 `EmptyCalendarService`（空数据），消除在生产环境下误回退到 `MockCalendarService` 产生虚假日程的问题。
+2. **`MockCalendarService` 增加 `#if DEBUG` 守卫**：确保开发调试用的模拟日历类绝对不会泄漏或编译进 Release 生产二进制。
+3. **`EmptyCalendarService` 完善**：补充打开 Windows 自带日历与日历设置逻辑。
+4. **设置界面增加系统日历与 Outlook 经典版说明**：明确告知用户系统日历基于 Windows 自带日历，若使用经典版 Outlook（.ost/MAPI），建议使用 ICS 订阅或同步账户至 Windows 日历中；无事件状态增加对应 ToolTip。
+
 ### 2026-05-07
 
 **系统日历拦截器开发与调试**

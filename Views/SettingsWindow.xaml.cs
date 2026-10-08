@@ -200,6 +200,12 @@ public partial class SettingsWindow : Window
         IcsPanel.Visibility = source == DataSourceType.IcsUrl || source == DataSourceType.Both
             ? Visibility.Visible
             : Visibility.Collapsed;
+        if (SystemCalendarTip != null)
+        {
+            SystemCalendarTip.Visibility = source == DataSourceType.SystemCalendar || source == DataSourceType.Both
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
     }
 
     /// <summary>
